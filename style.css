@@ -1,0 +1,223 @@
+﻿/* Cyberpunk Theme for MyQuest
+ * Primary Palette: #0B0050 (Midnight Cyber Blue) and #FFFFFF (White)
+ * Subtle Neon Accents: Cyan #00F0FF, Emerald #00FF88, Yellow #FFE600, Pink #FF007F, Purple #B026FF
+ */
+
+:root {
+  --bg-primary: #0B0050;
+  --text-primary: #FFFFFF;
+  --neon-cyan: #00F0FF;
+  --neon-green: #00FF88;
+  --neon-yellow: #FFE600;
+  --neon-pink: #FF007F;
+  --neon-purple: #B026FF;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Montserrat', sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(11, 0, 80, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.5);
+}
+
+/* Button Hover Transitions as specified:
+ * Nút trắng sẽ đổi sang trong suốt với viền, nút trong suốt với viền chuyển sang trắng
+ */
+.btn-white {
+  background-color: #FFFFFF;
+  color: #0B0050;
+  border: 1.5px solid #FFFFFF;
+  font-weight: 700;
+  border-radius: 9999px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-white:hover {
+  background-color: transparent !important;
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.45), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  border-radius: 9999px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-outline:hover {
+  background-color: #FFFFFF !important;
+  color: #0B0050 !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Green primary action button (e.g. Đăng sidequest ngay, Tham gia ngay) */
+.btn-neon-green {
+  background: #39a852;
+  color: #FFFFFF;
+  border: 1.5px solid #48bb62;
+  font-weight: 700;
+  border-radius: 9999px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
+  cursor: pointer;
+}
+.btn-neon-green:hover {
+  background: transparent;
+  color: #39e75f;
+  border-color: #39e75f;
+  box-shadow: 0 0 20px rgba(57, 231, 95, 0.55), inset 0 0 10px rgba(57, 231, 95, 0.2);
+}
+
+/* Difficulty Tag Badges:
+ * Khó - đỏ, Trung bình - vàng, Dễ - xanh
+ */
+.tag-kho {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #EF4444;
+  color: #FCA5A5;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.tag-trungbinh {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid #F59E0B;
+  color: #FDE047;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.tag-de {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10B981;
+  color: #6EE7B7;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+/* Category & General Tags */
+.tag-pill {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* Metallic Podium for Bảng Xếp Hạng */
+.podium-gold {
+  background: linear-gradient(180deg, #FFE875 0%, #D4AF37 35%, #947119 75%, #F4D03F 100%);
+  color: #2A1C00;
+  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5), inset 0 1px 3px rgba(255, 255, 255, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+}
+
+.podium-silver {
+  background: linear-gradient(180deg, #FFFFFF 0%, #D8D8D8 35%, #8E8E8E 75%, #E2E2E2 100%);
+  color: #1F1F1F;
+  box-shadow: 0 8px 25px rgba(220, 220, 220, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+}
+
+.podium-bronze {
+  background: linear-gradient(180deg, #F8C291 0%, #CD7F32 35%, #7F4118 75%, #E59866 100%);
+  color: #2D1405;
+  box-shadow: 0 8px 25px rgba(205, 127, 50, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Line clamp 3 lines */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Sidebar Toggle protrusion arrow button */
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 140px;
+  right: -24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(220, 220, 245, 0.92);
+  backdrop-filter: blur(12px);
+  color: #0B0050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.25s ease;
+}
+.sidebar-toggle-btn:hover {
+  transform: scale(1.08);
+  background: #FFFFFF;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.5);
+}
+
+/* Floating canvas behind all contents */
+#bg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Main app wrapper */
+#app-container {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Pulse animation */
+@keyframes neonPulse {
+  0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 8px rgba(0,240,255,0.4)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(0,240,255,0.8)); }
+}
+.neon-pulse {
+  animation: neonPulse 3s infinite ease-in-out;
+}

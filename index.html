@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyQuest - Nền tảng Sidequest & Kết nối cộng đồng</title>
+  
+  <!-- Google Fonts: Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#0B0050',
+            cyberCyan: '#00F0FF',
+            cyberGreen: '#00FF88',
+            cyberPink: '#FF007F',
+            cyberYellow: '#FFE600',
+            cyberPurple: '#B026FF'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Identity Services (Real Google Sign-In) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- Custom Stylesheets -->
+  <link rel="stylesheet" href="css/kvn-font.css">
+  <link rel="stylesheet" href="css/glass.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0B0050] text-white selection:bg-cyan-500 selection:text-black">
+
+  <!-- Dynamic Luminous Animated Background Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col space-y-3 pointer-events-auto max-w-sm"></div>
+
+  <!-- Sidebar Backdrop: Pure Transparent Click-catcher (NO screen blur, NO dark overlay as requested) -->
+  <div id="sidebar-backdrop" onclick="window.App.closeSidebar()" class="fixed inset-0 bg-transparent z-40 hidden pointer-events-auto"></div>
+
+  <!-- GLOBAL SIDEBAR (Direct child of body with z-50 to ensure clicks are never blocked) -->
+  <aside id="main-sidebar" onclick="event.stopPropagation()" class="fixed top-0 left-0 bottom-0 w-72 md:w-80 glass-popup z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between p-6 border-r border-white/20 pointer-events-auto shadow-2xl">
+    
+    <!-- Protruding Toggle Button with Arrow (< and >) -->
+    <button onclick="window.App.toggleSidebar()" class="sidebar-toggle-btn" title="Đóng/Mở Sidebar">
+      <span id="sidebar-toggle-icon" class="text-2xl font-bold font-mono">&gt;</span>
+    </button>
+
+      <!-- Sidebar Top: Brand & Menu -->
+      <div>
+        <div class="flex items-center space-x-3 mb-8 cursor-pointer" onclick="window.App.navigate('home')">
+          <img src="assets/images/MyQuest - White logo.png" alt="MyQuest" class="h-8 logo-glow" />
+        </div>
+
+        <nav class="space-y-1.5">
+          <a href="javascript:void(0)" id="nav-link-home" onclick="window.App.navigate('home')" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none">
+            <i data-lucide="home" class="w-5 h-5 text-cyan-400 flex-shrink-0"></i>
+            <span class="font-medium text-sm">Trang chủ</span>
+          </a>
+          <a href="javascript:void(0)" id="nav-link-community" onclick="window.App.navigate('community')" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none">
+            <i data-lucide="globe" class="w-5 h-5 text-pink-400 flex-shrink-0"></i>
+            <span class="font-medium text-sm">Cộng đồng</span>
+          </a>
+          <a href="javascript:void(0)" id="nav-link-connection" onclick="window.App.navigate('connection')" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none">
+            <i data-lucide="zap" class="w-5 h-5 text-yellow-400 flex-shrink-0"></i>
+            <span class="font-medium text-sm">Kết nối</span>
+          </a>
+          <a href="javascript:void(0)" id="nav-link-leaderboard" onclick="window.App.navigate('leaderboard')" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none">
+            <i data-lucide="trophy" class="w-5 h-5 text-amber-400 flex-shrink-0"></i>
+            <span class="font-medium text-sm">Bảng xếp hạng</span>
+          </a>
+          <a href="javascript:void(0)" id="nav-link-feed" onclick="window.App.navigate('feed')" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none">
+            <i data-lucide="rss" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+            <span class="font-medium text-sm">Bảng tin</span>
+          </a>
+
+          <!-- Nav items for logged-in users only -->
+          <div id="sidebar-auth-nav-items" class="space-y-1.5 pt-1 border-t border-white/10">
+            <a href="javascript:void(0)" id="nav-link-chat" onclick="window.App.navigate('chat')" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none">
+              <i data-lucide="message-circle" class="w-5 h-5 text-purple-400 flex-shrink-0"></i>
+              <span class="font-medium text-sm">Tin nhắn</span>
+            </a>
+            <a href="javascript:void(0)" id="nav-link-profile" onclick="window.App.navigate('profile')" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer select-none">
+              <i data-lucide="user" class="w-5 h-5 text-cyan-300 flex-shrink-0"></i>
+              <span class="font-medium text-sm">Hồ sơ của tôi</span>
+            </a>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Sidebar Bottom -->
+      <div>
+        <!-- Guest Section -->
+        <div id="sidebar-guest-section" class="pt-4 border-t border-white/10">
+          <button onclick="window.App.navigate('login')" class="w-full btn-white py-3 text-sm font-bold tracking-wider uppercase font-dearpix shadow-lg">
+            ĐĂNG NHẬP
+          </button>
+        </div>
+
+        <!-- Logged-in Section -->
+        <div id="sidebar-logged-section" class="pt-4 border-t border-white/10 space-y-3">
+          <button onclick="window.App.showNotiPopup()" class="w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 text-xs font-semibold transition-all">
+            <i data-lucide="bell" class="w-4 h-4 text-yellow-300"></i>
+            <span>Thông báo</span>
+          </button>
+
+          <div class="flex items-center space-x-3 pt-2">
+            <img id="sidebar-user-avatar" onclick="window.App.navigate('profile')" src="https://api.dicebear.com/7.x/bottts/svg?seed=LeVuMinh" class="w-10 h-10 rounded-full border border-cyan-400 shadow cursor-pointer hover:border-cyan-300 transition-colors" title="Xem hồ sơ" />
+            <div class="min-w-0 flex-1">
+              <span id="sidebar-user-name" onclick="window.App.navigate('profile')" class="font-bold text-white text-sm block truncate cursor-pointer hover:text-cyan-300 transition-colors">LeVuMinh</span>
+              <div class="flex items-center space-x-2">
+                <a href="javascript:void(0)" onclick="window.App.navigate('profile'); setTimeout(() => window.Profile.openEditModal(), 250);" class="text-[11px] text-cyan-300/90 hover:text-cyan-300 cursor-pointer underline">
+                  Chỉnh sửa tài khoản
+                </a>
+                <span class="text-[10px] text-white/30">•</span>
+                <a href="javascript:void(0)" onclick="window.App.signOut()" class="text-[11px] text-rose-300/90 hover:text-rose-300 cursor-pointer">
+                  Đăng xuất
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- App Wrapper -->
+    <div id="app-container" class="relative z-10 flex min-h-screen">
+
+      <!-- MAIN CONTENT VIEW AREA -->
+      <main class="flex-1 flex flex-col min-h-screen">
+
+      <!-- TOP BAR -->
+      <header class="w-full py-4 px-6 md:px-12 flex items-center justify-between z-20">
+        <div class="flex items-center space-x-4">
+          <button onclick="window.App.toggleSidebar()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Mở menu">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <div class="flex items-center space-x-2 cursor-pointer" onclick="window.App.navigate('home')">
+            <img src="assets/images/MyQuest - White logo.png" alt="MyQuest" class="h-6 logo-glow" />
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <button onclick="window.App.toggleGuestMode()" class="text-xs px-3 py-1.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 text-white/80 transition-all">
+            <span class="hidden sm:inline">Chuyển: </span><strong class="text-cyan-300">Đã login / Khách</strong>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTAINER FOR ALL PAGES -->
+      <div class="flex-1 max-w-4xl w-full mx-auto px-4 md:px-6 py-6 pb-20">
+        <!-- ================= PAGE: TRANG CHỦ (HOME) ================= -->
+        <div id="page-home" class="space-y-12">
+          
+          <div class="text-center pt-2">
+            <h1 class="font-dearpix text-4xl md:text-5xl font-black text-white title-glow tracking-wider">
+              MyQuest
+            </h1>
+          </div>
+
+          <!-- FRAME 1: MÁY TẠO SIDEQUEST -->
+          <section class="glass-section p-6 md:p-8 relative">
+            <div class="flex justify-center -mt-12 md:-mt-14 mb-6">
+              <div class="btn-white px-8 py-2.5 text-xs md:text-sm uppercase tracking-widest font-black shadow-2xl font-dearpix">
+                MÁY TẠO SIDEQUEST
+              </div>
+            </div>
+
+            <!-- Generated Quest Preview Card -->
+            <div id="gen-card-content" class="glass-card p-6 md:p-8 mb-6 border-cyan-400/30 transition-all duration-300">
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <h2 id="gen-title" class="font-dearpix text-xl md:text-2xl font-bold text-white tracking-wide">
+                  TÊN SIDEQUEST
+                </h2>
+                <div class="flex items-center space-x-2">
+                  <span id="gen-diff" class="px-3 py-1 text-xs rounded-full font-bold tag-trungbinh">Độ khó</span>
+                  <span id="gen-tag" class="tag-pill text-xs font-semibold">Tag</span>
+                </div>
+              </div>
+
+              <p id="gen-desc" class="text-white/80 text-sm md:text-base leading-relaxed mb-6">
+                Short Description
+              </p>
+
+              <!-- Button: Đăng sidequest ngay -->
+              <button id="btn-post-generated-quest" onclick="window.Generator.postCurrentQuest()" class="w-full btn-neon-green py-3 text-sm md:text-base font-bold tracking-wide uppercase shadow-lg">
+                Đăng sidequest ngay
+              </button>
+            </div>
+
+            <!-- TẠO LẠI Box -->
+            <div class="pt-4 border-t border-white/10">
+              <h3 class="font-dearpix text-sm md:text-base font-bold text-white mb-4 tracking-wider">
+                TẠO LẠI
+              </h3>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 text-xs">
+                <div>
+                  <label class="block text-white/60 mb-1 font-medium">Độ khó:</label>
+                  <select id="gen-filter-diff" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                    <option value="all">Tất cả độ khó</option>
+                    <option value="Dễ">Dễ</option>
+                    <option value="Trung bình">Trung bình</option>
+                    <option value="Khó">Khó</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-white/60 mb-1 font-medium">Số người tham gia:</label>
+                  <select id="gen-filter-part" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                    <option value="all">Tất cả</option>
+                    <option value="Cá nhân">Cá nhân</option>
+                    <option value="Cặp đôi">Cặp đôi</option>
+                    <option value="Nhóm">Nhóm</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-white/60 mb-1 font-medium">Tag:</label>
+                  <select id="gen-filter-tag" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                    <option value="all">Tất cả chủ đề</option>
+                    <option value="Sáng tạo">Sáng tạo</option>
+                    <option value="Học hỏi">Học hỏi</option>
+                    <option value="Thể chất">Thể chất</option>
+                    <option value="Kết nối">Kết nối</option>
+                    <option value="Đồng hành">Đồng hành</option>
+                    <option value="Thiện nguyện">Thiện nguyện</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-white/60 mb-1 font-medium">Hình thức:</label>
+                  <select id="gen-filter-format" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                    <option value="all">Tất cả hình thức</option>
+                    <option value="Online">Online</option>
+                    <option value="Offline">Offline</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <button onclick="window.Generator.generate()" class="btn-white px-10 py-3 text-sm font-bold uppercase tracking-wider shadow-xl font-dearpix">
+                  TẠO NGAY
+                </button>
+                <div id="gen-quota-text" class="text-xs text-white/60 mt-2 font-medium">
+                  Bạn còn 5 lượt tạo miễn phí
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- FRAME 2: CỘNG ĐỒNG -->
+          <section class="glass-section p-6 md:p-8">
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-center text-white mb-6 title-glow">
+              CỘNG ĐỒNG
+            </h2>
+
+            <div class="mb-6">
+              <div class="relative">
+                <input type="text" onclick="window.App.navigate('feed')" readonly placeholder="Tìm kiếm người chơi, quests,..." 
+                  class="w-full glass-input px-5 py-3 text-xs md:text-sm pl-11 text-white placeholder-white/50 cursor-pointer" />
+                <i data-lucide="search" class="w-4 h-4 text-white/50 absolute left-4 top-1/2 -translate-y-1/2"></i>
+              </div>
+            </div>
+
+            <div class="glass-card p-5 md:p-6 mb-6">
+              <div class="flex flex-col sm:flex-row gap-5">
+                <div class="w-full sm:w-48 h-36 rounded-xl bg-cover bg-center flex-shrink-0 border border-white/10" style="background-image: url('https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=600&q=80')"></div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center space-x-2.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=NeonWalker" class="w-7 h-7 rounded-full border border-cyan-400" />
+                    <div>
+                      <span class="font-bold text-white text-xs block">NeonWalker</span>
+                      <span class="text-[10px] text-white/50">2 giờ trước</span>
+                    </div>
+                  </div>
+                  <!-- Max 3 lines description -->
+                  <p class="text-xs md:text-sm text-white/80 line-clamp-3 leading-relaxed mb-3">
+                    Vừa hoàn thành sidequest chạy bộ 5km chiều nay cùng một người bạn mới quen qua MyQuest! Cảm giác ngắm hoàng hôn buông xuống cầu Long Biên thật tuyệt vời, năng lượng tích cực ngập tràn! Đã nhận được 35 điểm thưởng và huy hiệu siêu xịn ✨🏃‍♂️
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center">
+              <button onclick="window.App.navigate('community')" class="btn-white px-8 py-2.5 text-xs uppercase tracking-wider font-bold font-dearpix">
+                XEM THÊM
+              </button>
+            </div>
+          </section>
+
+          <!-- FRAME 3: BẢNG XẾP HẠNG -->
+          <section class="glass-section p-6 md:p-8">
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-center text-white mb-4 title-glow">
+              BẢNG XẾP HẠNG
+            </h2>
+
+            <div class="flex justify-center space-x-2 mb-8">
+              <button class="btn-white px-4 py-1.5 text-xs font-bold font-dearpix">Tuần</button>
+              <button onclick="window.App.navigate('leaderboard')" class="btn-outline px-4 py-1.5 text-xs font-dearpix">Tháng</button>
+              <button onclick="window.App.navigate('leaderboard')" class="btn-outline px-4 py-1.5 text-xs font-dearpix">Quý</button>
+              <button onclick="window.App.navigate('leaderboard')" class="btn-outline px-4 py-1.5 text-xs font-dearpix">Năm</button>
+            </div>
+
+            <div class="flex items-end justify-center gap-3 sm:gap-6 mb-8 max-w-md mx-auto">
+              <!-- #2 Silver -->
+              <div class="flex-1 flex flex-col items-center cursor-pointer" onclick="window.App.openUserProfile('AoiKitsune')">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AoiKitsune" class="w-14 h-14 rounded-full border-2 border-slate-300 mb-2 shadow-lg" />
+                <div class="podium-silver w-full pt-4 pb-3 rounded-t-2xl text-center">
+                  <span class="text-xs font-bold uppercase block text-slate-800">#2</span>
+                  <span class="text-xs font-bold block truncate px-2 text-slate-900 font-dearpix">AoiKitsune</span>
+                  <span class="text-[10px] text-slate-700 block font-semibold">2,510 pts</span>
+                </div>
+              </div>
+
+              <!-- #1 Gold -->
+              <div class="flex-1 flex flex-col items-center cursor-pointer" onclick="window.App.openUserProfile('KuroShinobi')">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=KuroShinobi" class="w-18 h-18 rounded-full border-3 border-yellow-300 mb-2 shadow-xl ring-2 ring-yellow-400/50" />
+                <div class="podium-gold w-full pt-7 pb-4 rounded-t-2xl text-center">
+                  <span class="text-xs font-black uppercase block text-yellow-950 font-dearpix">👑 #1</span>
+                  <span class="text-xs font-black block truncate px-2 text-yellow-950 font-dearpix">KuroShinobi</span>
+                  <span class="text-[10px] text-yellow-900 block font-bold">2,840 pts</span>
+                </div>
+              </div>
+
+              <!-- #3 Bronze -->
+              <div class="flex-1 flex flex-col items-center cursor-pointer" onclick="window.App.openUserProfile('NeonRider')">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=NeonRider" class="w-14 h-14 rounded-full border-2 border-amber-600 mb-2 shadow-lg" />
+                <div class="podium-bronze w-full pt-3 pb-2 rounded-t-2xl text-center">
+                  <span class="text-xs font-bold uppercase block text-amber-950">#3</span>
+                  <span class="text-xs font-bold block truncate px-2 text-amber-950 font-dearpix">NeonRider</span>
+                  <span class="text-[10px] text-amber-900 block font-semibold">2,390 pts</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center">
+              <button onclick="window.App.navigate('leaderboard')" class="btn-white px-8 py-2.5 text-xs uppercase tracking-wider font-bold font-dearpix">
+                XEM THÊM
+              </button>
+            </div>
+          </section>
+        </div>
+
+
+        <!-- ================= PAGE: CỘNG ĐỒNG (COMMUNITY) ================= -->
+        <div id="page-community" class="hidden space-y-12">
+          <div class="text-center pt-2">
+            <h1 class="font-dearpix text-4xl md:text-5xl font-black text-white title-glow tracking-wider">
+              MyQuest
+            </h1>
+          </div>
+
+          <section class="glass-section p-6 md:p-8">
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-center text-white mb-6 title-glow">
+              KẾT NỐI
+            </h2>
+            <div class="glass-card p-5 md:p-6 mb-6">
+              <div class="flex flex-col md:flex-row gap-5">
+                <div class="w-full md:w-52 h-40 rounded-xl bg-cover bg-center flex-shrink-0" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80')"></div>
+                <div class="flex-1">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-dearpix text-lg font-bold text-white">Đua thuyền Kayak hoàng hôn Hồ Tây</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold tag-trungbinh">Trung bình</span>
+                  </div>
+                  <div class="flex flex-wrap gap-2 mb-3 text-xs text-white/70">
+                    <span class="tag-pill">Thể chất</span>
+                    <span class="tag-pill">Hà Nội</span>
+                    <span class="tag-pill">Còn 2 ngày</span>
+                    <span class="tag-pill">8 người tham gia</span>
+                  </div>
+                  <p class="text-xs text-white/80 line-clamp-2 mb-4 leading-relaxed">
+                    Một buổi chiều giải phóng năng lượng trên mặt nước hồ Tây lộng gió. Trải nghiệm chèo kayak ngắm nhìn hoàng hôn rực đỏ.
+                  </p>
+                  <button onclick="window.Connection.openDetail('quest-101')" class="btn-white px-6 py-2 text-xs uppercase font-bold tracking-wider font-dearpix">
+                    THAM GIA NGAY
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="text-center">
+              <button onclick="window.App.navigate('connection')" class="btn-white px-8 py-2.5 text-xs uppercase tracking-wider font-bold font-dearpix">
+                XEM THÊM
+              </button>
+            </div>
+          </section>
+
+          <section class="glass-section p-6 md:p-8">
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-center text-white mb-4 title-glow">
+              BẢNG TIN
+            </h2>
+            <div class="flex justify-center space-x-6 mb-6 text-sm">
+              <span class="text-white font-bold border-b-2 border-cyan-400 pb-1 cursor-pointer font-dearpix" onclick="window.App.navigate('feed')">Xu hướng</span>
+              <span class="text-white/60 hover:text-white pb-1 cursor-pointer font-dearpix" onclick="window.App.navigate('feed')">Quan tâm</span>
+              <span class="text-white/60 hover:text-white pb-1 cursor-pointer font-dearpix" onclick="window.App.navigate('feed')">Bạn bè</span>
+            </div>
+            <div class="glass-card p-6 mb-6 relative">
+              <div class="absolute top-6 right-6">
+                <span class="tag-pill">#Sáng tạo</span>
+              </div>
+              <div class="flex items-center space-x-3 mb-4">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=ArtisanZero" class="w-10 h-10 rounded-full border border-white/30" />
+                <div>
+                  <span class="font-bold text-white text-sm font-dearpix">ArtisanZero</span>
+                  <span class="text-[11px] text-white/50 block">5 giờ trước</span>
+                </div>
+              </div>
+              <p class="text-xs md:text-sm text-white/80 line-clamp-3 mb-4 leading-relaxed">
+                Cuối cùng cũng hoàn thành sidequest vẽ isometric map cho The Hidden Cafe phong cách Neo-Tokyo! Cảm ơn anh chủ quán đã tài trợ ly cold brew thơm phức trong lúc sketch 🎨
+              </p>
+              <div class="h-56 rounded-xl overflow-hidden mb-4 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80')"></div>
+            </div>
+            <div class="text-center">
+              <button onclick="window.App.navigate('feed')" class="btn-white px-8 py-2.5 text-xs uppercase tracking-wider font-bold font-dearpix">
+                XEM THÊM
+              </button>
+            </div>
+          </section>
+
+          <!-- FRAME 3: BẢNG XẾP HẠNG (COMMUNITY LEADERBOARD) -->
+          <section class="glass-section p-6 md:p-8">
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-center text-white mb-4 title-glow">
+              BẢNG XẾP HẠNG
+            </h2>
+
+            <div class="flex justify-center space-x-2 mb-8">
+              <button class="btn-white px-4 py-1.5 text-xs font-bold font-dearpix">Tuần</button>
+              <button onclick="window.App.navigate('leaderboard')" class="btn-outline px-4 py-1.5 text-xs font-dearpix">Tháng</button>
+              <button onclick="window.App.navigate('leaderboard')" class="btn-outline px-4 py-1.5 text-xs font-dearpix">Quý</button>
+              <button onclick="window.App.navigate('leaderboard')" class="btn-outline px-4 py-1.5 text-xs font-dearpix">Năm</button>
+            </div>
+
+            <div class="flex items-end justify-center gap-3 sm:gap-6 mb-8 max-w-md mx-auto">
+              <!-- #2 Silver -->
+              <div class="flex-1 flex flex-col items-center cursor-pointer" onclick="window.App.openUserProfile('AoiKitsune')">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AoiKitsune" class="w-14 h-14 rounded-full border-2 border-slate-300 mb-2 shadow-lg" />
+                <div class="podium-silver w-full pt-4 pb-3 rounded-t-2xl text-center">
+                  <span class="text-xs font-bold uppercase block text-slate-800">#2</span>
+                  <span class="text-xs font-bold block truncate px-2 text-slate-900 font-dearpix">AoiKitsune</span>
+                  <span class="text-[10px] text-slate-700 block font-semibold">2,510 pts</span>
+                </div>
+              </div>
+
+              <!-- #1 Gold -->
+              <div class="flex-1 flex flex-col items-center cursor-pointer" onclick="window.App.openUserProfile('KuroShinobi')">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=KuroShinobi" class="w-18 h-18 rounded-full border-3 border-yellow-300 mb-2 shadow-xl ring-2 ring-yellow-400/50" />
+                <div class="podium-gold w-full pt-7 pb-4 rounded-t-2xl text-center">
+                  <span class="text-xs font-black uppercase block text-yellow-950 font-dearpix">👑 #1</span>
+                  <span class="text-xs font-black block truncate px-2 text-yellow-950 font-dearpix">KuroShinobi</span>
+                  <span class="text-[10px] text-yellow-900 block font-bold">2,840 pts</span>
+                </div>
+              </div>
+
+              <!-- #3 Bronze -->
+              <div class="flex-1 flex flex-col items-center cursor-pointer" onclick="window.App.openUserProfile('NeonRider')">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=NeonRider" class="w-14 h-14 rounded-full border-2 border-amber-600 mb-2 shadow-lg" />
+                <div class="podium-bronze w-full pt-3 pb-2 rounded-t-2xl text-center">
+                  <span class="text-xs font-bold uppercase block text-amber-950">#3</span>
+                  <span class="text-xs font-bold block truncate px-2 text-amber-950 font-dearpix">NeonRider</span>
+                  <span class="text-[10px] text-amber-900 block font-semibold">2,390 pts</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center">
+              <button onclick="window.App.navigate('leaderboard')" class="btn-white px-8 py-2.5 text-xs uppercase tracking-wider font-bold font-dearpix">
+                XEM THÊM
+              </button>
+            </div>
+          </section>
+        </div>
+        <!-- ================= PAGE: KẾT NỐI (CONNECTION) ================= -->
+        <div id="page-connection" class="hidden space-y-8">
+          <div class="text-center pt-2">
+            <h1 class="font-dearpix text-4xl md:text-5xl font-black text-white title-glow tracking-wider">
+              MyQuest
+            </h1>
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-white mt-2 tracking-wide">
+              KẾT NỐI
+            </h2>
+          </div>
+
+          <!-- Quota Notice & Action Header -->
+          <div class="text-center space-y-3">
+            <div id="conn-quota-notice" class="text-xs text-cyan-300/90 font-medium">
+              Lưu ý: Mỗi tài khoản được đăng miễn phí 3 quests. Bạn còn 3 lượt đăng free.
+            </div>
+
+            <button onclick="window.Connection.openCreateModal()" class="btn-white px-10 py-3.5 text-sm md:text-base font-black uppercase tracking-wider shadow-2xl font-dearpix">
+              Đăng quest mới ngay!!! <span id="conn-post-quota-badge" class="text-xs font-normal opacity-70 ml-1">(còn 3 lần đăng)</span>
+            </button>
+          </div>
+
+          <!-- BỘ LỌC (Filters Frame) -->
+          <div class="glass-section p-5 md:p-6">
+            <h3 class="font-dearpix text-sm md:text-base font-bold text-white mb-3 tracking-wider">
+              BỘ LỌC
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div>
+                <label class="text-[11px] text-white/60 block mb-1">Tag</label>
+                <select id="filter-tag" onchange="window.Connection.renderQuests()" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                  <option value="all">Tất cả Tag</option>
+                  <option value="Sáng tạo">Sáng tạo</option>
+                  <option value="Học hỏi">Học hỏi</option>
+                  <option value="Thể chất">Thể chất</option>
+                  <option value="Kết nối">Kết nối</option>
+                  <option value="Đồng hành">Đồng hành</option>
+                  <option value="Thiện nguyện">Thiện nguyện</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-white/60 block mb-1">Địa điểm</label>
+                <select id="filter-location" onchange="window.Connection.renderQuests()" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                  <option value="all">Địa điểm: Tất cả</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-white/60 block mb-1">Thời gian</label>
+                <select id="filter-time" onchange="window.Connection.renderQuests()" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                  <option value="all">Tất cả thời gian</option>
+                  <option value="<12h">Còn &lt;12h</option>
+                  <option value="1_day">Còn 1 ngày</option>
+                  <option value="2_5_days">Còn 2-5 ngày</option>
+                  <option value="1_week">Còn 1 tuần</option>
+                  <option value="1_month">Còn 1 tháng</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-white/60 block mb-1">Điều kiện tham gia</label>
+                <select id="filter-fee" onchange="window.Connection.renderQuests()" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                  <option value="all">Tất cả điều kiện</option>
+                  <option value="Miễn phí">Miễn phí</option>
+                  <option value="Trả phí">Trả phí</option>
+                  <option value="Đổi điểm">Đổi điểm</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-white/60 block mb-1">Độ khó</label>
+                <select id="filter-diff" onchange="window.Connection.renderQuests()" class="w-full glass-input px-3 py-2 text-xs bg-slate-900/80">
+                  <option value="all">Tất cả độ khó</option>
+                  <option value="Dễ">Dễ</option>
+                  <option value="Trung bình">Trung bình</option>
+                  <option value="Khó">Khó</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUEST LIST CONTAINER -->
+          <div id="connection-quests-list" class="space-y-5">
+            <!-- Quests rendered dynamically -->
+          </div>
+        </div>
+
+
+        <!-- ================= PAGE: BẢNG TIN (FEED) ================= -->
+        <div id="page-feed" class="hidden space-y-6">
+          <div class="text-center pt-2">
+            <h1 class="font-dearpix text-4xl md:text-5xl font-black text-white title-glow tracking-wider">
+              MyQuest
+            </h1>
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-white mt-2 tracking-wide">
+              BẢNG TIN
+            </h2>
+          </div>
+
+          <div class="flex justify-center space-x-8 text-sm md:text-base border-b border-white/10 pb-2">
+            <button id="feed-tab-trending" onclick="window.Feed.switchTab('trending')" class="text-white font-bold border-b-2 border-cyan-400 pb-1 font-dearpix">
+              Xu hướng
+            </button>
+            <button id="feed-tab-following" onclick="window.Feed.switchTab('following')" class="text-white/60 hover:text-white pb-1 font-dearpix">
+              Quan tâm
+            </button>
+            <button id="feed-tab-friends" onclick="window.Feed.switchTab('friends')" class="text-white/60 hover:text-white pb-1 font-dearpix">
+              Bạn bè
+            </button>
+          </div>
+
+          <div>
+            <div class="relative">
+              <input id="feed-search-input" type="text" oninput="window.Feed.renderPosts()" placeholder="Tìm kiếm người chơi, quests,..." 
+                class="w-full glass-input px-5 py-3 text-xs md:text-sm pl-11 text-white placeholder-white/50" />
+              <i data-lucide="search" class="w-4 h-4 text-white/50 absolute left-4 top-1/2 -translate-y-1/2"></i>
+            </div>
+          </div>
+
+          <div id="feed-posts-container" class="space-y-6">
+            <!-- Posts rendered dynamically -->
+          </div>
+        </div>
+
+
+        <!-- ================= PAGE: BẢNG XẾP HẠNG (LEADERBOARD) ================= -->
+        <div id="page-leaderboard" class="hidden space-y-8">
+          <div class="text-center pt-2">
+            <h1 class="font-dearpix text-4xl md:text-5xl font-black text-white title-glow tracking-wider">
+              MyQuest
+            </h1>
+            <h2 class="font-dearpix text-2xl md:text-3xl font-bold text-white mt-2 tracking-wide">
+              BẢNG XẾP HẠNG
+            </h2>
+          </div>
+
+          <div class="flex justify-center space-x-2 md:space-x-4">
+            <button id="lb-tab-week" onclick="window.Leaderboard.switchPeriod('week')" class="btn-white px-5 py-1.5 text-xs font-bold shadow-lg font-dearpix">Tuần</button>
+            <button id="lb-tab-month" onclick="window.Leaderboard.switchPeriod('month')" class="btn-outline px-5 py-1.5 text-xs font-medium text-white/70 font-dearpix">Tháng</button>
+            <button id="lb-tab-quarter" onclick="window.Leaderboard.switchPeriod('quarter')" class="btn-outline px-5 py-1.5 text-xs font-medium text-white/70 font-dearpix">Quý</button>
+            <button id="lb-tab-year" onclick="window.Leaderboard.switchPeriod('year')" class="btn-outline px-5 py-1.5 text-xs font-medium text-white/70 font-dearpix">Năm</button>
+          </div>
+
+          <div class="flex items-end justify-center gap-3 sm:gap-6 pt-4 pb-2 max-w-lg mx-auto">
+            <!-- #2 Silver -->
+            <div class="flex-1 flex flex-col items-center cursor-pointer">
+              <img id="podium-2-avatar" src="" class="w-14 h-14 rounded-full border-2 border-slate-300 mb-2 shadow-lg" />
+              <div class="podium-silver w-full pt-5 pb-3 rounded-t-2xl text-center">
+                <span class="text-xs font-bold uppercase block text-slate-800">#2</span>
+                <span id="podium-2-name" class="text-xs font-bold block truncate px-2 text-slate-900 font-dearpix"></span>
+                <span id="podium-2-points" class="text-[10px] text-slate-700 block font-semibold"></span>
+              </div>
+            </div>
+
+            <!-- #1 Gold -->
+            <div class="flex-1 flex flex-col items-center cursor-pointer">
+              <img id="podium-1-avatar" src="" class="w-18 h-18 rounded-full border-3 border-yellow-300 mb-2 shadow-xl ring-2 ring-yellow-400/50" />
+              <div class="podium-gold w-full pt-8 pb-4 rounded-t-2xl text-center">
+                <span class="text-xs font-black uppercase block text-yellow-950 font-dearpix">👑 #1</span>
+                <span id="podium-1-name" class="text-xs font-black block truncate px-2 text-yellow-950 font-dearpix"></span>
+                <span id="podium-1-points" class="text-[10px] text-yellow-900 block font-bold"></span>
+              </div>
+            </div>
+
+            <!-- #3 Bronze -->
+            <div class="flex-1 flex flex-col items-center cursor-pointer">
+              <img id="podium-3-avatar" src="" class="w-14 h-14 rounded-full border-2 border-amber-600 mb-2 shadow-lg" />
+              <div class="podium-bronze w-full pt-4 pb-2.5 rounded-t-2xl text-center">
+                <span class="text-xs font-bold uppercase block text-amber-950">#3</span>
+                <span id="podium-3-name" class="text-xs font-bold block truncate px-2 text-amber-950 font-dearpix"></span>
+                <span id="podium-3-points" class="text-[10px] text-amber-900 block font-semibold"></span>
+              </div>
+            </div>
+          </div>
+
+          <div id="leaderboard-list-container" class="space-y-2.5 max-w-xl mx-auto"></div>
+          <div id="user-personal-rank" class="max-w-xl mx-auto pt-4"></div>
+        </div>
+        <!-- ================= PAGE: TIN NHẮN (CHAT) ================= -->
+        <div id="page-chat" class="hidden">
+          <div class="glass-section p-0 overflow-hidden flex flex-col md:flex-row h-[700px]">
+            
+            <div class="w-full md:w-80 border-r border-white/10 flex flex-col bg-black/20">
+              <div class="p-4 border-b border-white/10 flex items-center justify-between">
+                <h3 class="font-dearpix text-base font-bold text-white tracking-wide">
+                  Cuộc trò chuyện
+                </h3>
+                <span class="text-xs text-cyan-300">Không giới hạn</span>
+              </div>
+              <div id="chat-threads-list" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+            </div>
+
+            <div class="flex-1 flex flex-col bg-white/[0.02]">
+              <div id="chat-active-header" class="p-4 border-b border-white/10 flex items-center justify-between"></div>
+              <div id="chat-messages-stream" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+
+              <form onsubmit="window.Chat.sendMessage(event)" class="p-3 border-t border-white/10 flex items-center space-x-2 bg-black/30">
+                <button type="button" onclick="window.Chat.sendImageSimulated()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 transition-colors" title="Gửi ảnh">
+                  <i data-lucide="image" class="w-4 h-4"></i>
+                </button>
+                <button type="button" id="chat-voice-btn" onclick="window.Chat.toggleVoiceRecord()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 transition-colors" title="Gửi Voice">
+                  <i data-lucide="mic" class="w-4 h-4"></i>
+                </button>
+                <input id="chat-message-input" type="text" placeholder="Nhập tin nhắn..." 
+                  class="flex-1 glass-input px-4 py-2.5 text-xs md:text-sm text-white placeholder-white/40" />
+                <button type="submit" class="btn-white px-5 py-2.5 text-xs uppercase font-bold tracking-wider font-dearpix">
+                  Gửi
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ================= PAGE: HỒ SƠ CỦA TÔI (MY PROFILE) ================= -->
+        <div id="page-profile" class="hidden space-y-8">
+          <div class="text-center pt-2">
+            <h1 class="font-dearpix text-4xl md:text-5xl font-black text-white title-glow tracking-wider">
+              MyQuest
+            </h1>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="btn-white px-6 py-2 text-xs md:text-sm uppercase font-black tracking-wider font-dearpix">
+              Hồ sơ của tôi
+            </div>
+            <button onclick="window.Profile.openEditModal()" class="text-xs text-white/80 hover:text-white underline font-semibold cursor-pointer">
+              Chỉnh sửa
+            </button>
+          </div>
+
+          <div class="glass-section p-6 md:p-8">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 mb-6">
+              <img id="profile-avatar" src="" class="w-24 h-24 rounded-full border-3 border-cyan-400 shadow-2xl" />
+              <div class="text-center sm:text-left flex-1">
+                <h2 id="profile-username" class="font-dearpix text-2xl md:text-3xl font-bold text-white tracking-wide"></h2>
+                <span id="profile-join-date" class="text-xs text-white/50 block mt-1"></span>
+                <div class="mt-3">
+                  <span class="text-xs font-bold text-cyan-300 uppercase block mb-1">Bio</span>
+                  <p id="profile-bio" class="text-xs md:text-sm text-white/80 leading-relaxed"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats Row: Real dynamic data -->
+            <div class="grid grid-cols-3 gap-3 pt-4 border-t border-white/10">
+              <div class="glass-card p-4 text-center">
+                <div class="text-xs text-white/60 mb-1">Đã hoàn thành</div>
+                <div id="stat-completed-count" class="font-dearpix text-xl md:text-2xl font-bold text-emerald-400">0</div>
+              </div>
+              <div class="glass-card p-4 text-center">
+                <div class="text-xs text-white/60 mb-1">Điểm</div>
+                <div id="stat-points-count" class="font-dearpix text-xl md:text-2xl font-bold text-yellow-400">0</div>
+              </div>
+              <div class="glass-card p-4 text-center">
+                <div class="text-xs text-white/60 mb-1">Xếp hạng</div>
+                <div id="stat-rank-text" class="font-dearpix text-xl md:text-2xl font-bold text-cyan-400">#110</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 Columns: Thành tựu & Hoạt động của tôi -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-section p-6">
+              <h3 class="font-dearpix text-base font-bold text-white mb-4 tracking-wide">
+                Thành tựu
+              </h3>
+              <div class="space-y-2.5">
+                <div class="glass-card p-3 flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">✓</div>
+                  <div class="text-xs">
+                    <span class="font-bold text-white block">Hoàn thành 1 quest</span>
+                    <span class="text-white/50 text-[10px]">Mở khóa danh hiệu Tân Binh</span>
+                  </div>
+                </div>
+                <div class="glass-card p-3 flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-sm">★</div>
+                  <div class="text-xs">
+                    <span class="font-bold text-white block">Kết bạn với 5 người</span>
+                    <span class="text-white/50 text-[10px]">Đã kết bạn 2/5</span>
+                  </div>
+                </div>
+                <div class="glass-card p-3 flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center font-bold text-sm">✦</div>
+                  <div class="text-xs">
+                    <span class="font-bold text-white block">Chia sẻ với 3 người bạn</span>
+                    <span class="text-white/50 text-[10px]">Đã chia sẻ 1/3</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hoạt động của tôi (Target for smooth scroll) -->
+            <div id="profile-activities-section" class="glass-section p-6">
+              <h3 class="font-dearpix text-base font-bold text-white mb-4 tracking-wide">
+                Hoạt động của tôi
+              </h3>
+              <div id="profile-activities-list" class="space-y-3"></div>
+            </div>
+          </div>
+
+          <!-- Section: Bài viết đã chia sẻ -->
+          <div class="glass-section p-6">
+            <h3 class="font-dearpix text-base font-bold text-white mb-4 tracking-wide">
+              Bài viết đã chia sẻ
+            </h3>
+
+            <div class="flex space-x-6 text-sm mb-6 border-b border-white/10 pb-2">
+              <button id="profile-tab-connection" onclick="window.Profile.switchSharedTab('connection')" class="text-white font-bold border-b-2 border-cyan-400 pb-1 font-dearpix">
+                KẾT NỐI
+              </button>
+              <button id="profile-tab-feed" onclick="window.Profile.switchSharedTab('feed')" class="text-white/60 hover:text-white pb-1 font-dearpix">
+                BẢNG TIN
+              </button>
+            </div>
+
+            <div id="profile-shared-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+          </div>
+        </div>
+
+
+        <!-- ================= PAGE: ĐĂNG NHẬP THẬT (REAL AUTH APP) ================= -->
+        <div id="page-login" class="hidden">
+          <div class="max-w-md mx-auto glass-section p-8 text-center space-y-6">
+            <div class="w-20 h-20 rounded-full bg-white/10 border-2 border-cyan-400 flex items-center justify-center mx-auto shadow-2xl">
+              <i data-lucide="user-check" class="w-10 h-10 text-cyan-300"></i>
+            </div>
+
+            <div>
+              <h2 class="font-dearpix text-2xl font-bold text-white tracking-wide">Đăng nhập tài khoản</h2>
+              <p class="text-xs text-white/60 mt-1">Đăng nhập tài khoản thật để lưu trữ dữ liệu, tiến độ quest và kết nối bạn bè.</p>
+            </div>
+
+            <!-- Real Email & Password Login / Register Form -->
+            <form onsubmit="window.App.handleRealEmailAuth(event)" class="text-left space-y-3.5 pt-2">
+              <div>
+                <label class="block text-white/70 text-xs font-semibold mb-1">Email / Tài khoản</label>
+                <input id="auth-real-email" type="email" required placeholder="nhapemail@gmail.com" class="w-full glass-input px-4 py-2.5 text-xs text-white" />
+              </div>
+              
+              <div>
+                <label class="block text-white/70 text-xs font-semibold mb-1">Mật khẩu</label>
+                <input id="auth-real-password" type="password" required minlength="6" placeholder="Tối thiểu 6 ký tự..." class="w-full glass-input px-4 py-2.5 text-xs text-white" />
+              </div>
+
+              <!-- Register toggle -->
+              <div class="flex items-center justify-between text-xs pt-1">
+                <label class="flex items-center space-x-2 text-white/80 cursor-pointer">
+                  <input id="auth-is-register" type="checkbox" onchange="document.getElementById('register-name-field').classList.toggle('hidden', !this.checked)" class="rounded text-cyan-500" />
+                  <span>Đăng ký tài khoản mới</span>
+                </label>
+                <a onclick="window.App.showToast('Vui lòng kiểm tra email để đặt lại mật khẩu!', 'info')" class="text-cyan-300/80 hover:text-cyan-300 cursor-pointer">Quên mật khẩu?</a>
+              </div>
+
+              <div id="register-name-field" class="hidden">
+                <label class="block text-white/70 text-xs font-semibold mb-1">Tên hiển thị (Username)</label>
+                <input id="auth-real-name" type="text" placeholder="Tên hiển thị trên MyQuest" class="w-full glass-input px-4 py-2 text-xs text-white" />
+              </div>
+
+              <button type="submit" class="w-full btn-white py-3 text-xs md:text-sm font-bold uppercase tracking-wider font-dearpix shadow-lg">
+                Đăng nhập / Đăng ký
+              </button>
+            </form>
+
+            <div class="relative py-2">
+              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+              <div class="relative flex justify-center text-xs"><span class="px-3 bg-[#0B0050] text-white/40">hoặc đăng nhập nhanh</span></div>
+            </div>
+
+            <!-- Real Phone OTP Authentication -->
+            <form onsubmit="window.App.handlePhoneAuth(event)" class="text-left space-y-2 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <label class="block text-white/70 text-[11px] font-semibold">Đăng nhập bằng Số điện thoại (Nhận OTP)</label>
+              <div class="flex gap-2">
+                <input id="auth-phone-input" type="tel" placeholder="0901234567" class="flex-1 glass-input px-3 py-2 text-xs text-white" />
+                <button type="submit" class="btn-outline px-3 py-1.5 text-xs whitespace-nowrap">Gửi OTP</button>
+              </div>
+              <div id="auth-otp-section" class="hidden pt-2">
+                <div class="flex gap-2">
+                  <input id="auth-otp-input" type="text" maxlength="6" placeholder="Nhập 6 số OTP..." class="flex-1 glass-input px-3 py-2 text-xs text-white" />
+                  <button type="submit" class="btn-white px-4 py-1.5 text-xs font-bold whitespace-nowrap">Xác nhận</button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Social OAuth Providers -->
+            <div class="space-y-2 text-xs font-semibold">
+              <button onclick="window.App.loginWithProvider('Google')" class="w-full py-2.5 px-4 rounded-full bg-white text-slate-900 flex items-center justify-center space-x-2 hover:bg-slate-200 transition-colors">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+                <span>Đăng nhập với Google</span>
+              </button>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="window.App.loginWithProvider('Facebook')" class="py-2 rounded-full bg-blue-600 text-white flex items-center justify-center space-x-1 hover:bg-blue-700 transition-colors">
+                  <span>Facebook</span>
+                </button>
+                <button onclick="window.App.loginWithProvider('Discord')" class="py-2 rounded-full bg-indigo-600 text-white flex items-center justify-center space-x-1 hover:bg-indigo-700 transition-colors">
+                  <span>Discord</span>
+                </button>
+                <button onclick="window.App.loginWithProvider('X')" class="py-2 rounded-full bg-black border border-white/20 text-white flex items-center justify-center space-x-1 hover:bg-slate-900 transition-colors">
+                  <span>X (Twitter)</span>
+                </button>
+              </div>
+            </div>
+
+            <button onclick="window.App.navigate('home')" class="btn-outline px-6 py-2 text-xs">
+              Quay lại trang chủ
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  <!-- ================= MODALS & POPUPS ================= -->
+
+  <!-- REGISTRATION STATUS MODAL (New requirement: 3 statuses + smooth scroll to My Activities) -->
+  <div id="registration-status-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-sm w-full p-8 text-center space-y-6 relative border-cyan-400/40">
+      <button onclick="window.Connection.closeRegistrationStatusModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+        ✕
+      </button>
+
+      <!-- Status Icon (changes dynamically based on status: success, pending_approval, failed) -->
+      <div id="reg-status-icon-container" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-2xl">
+        <!-- Rendered by js/connection.js -->
+      </div>
+
+      <div>
+        <h3 id="reg-status-title" class="font-dearpix text-xl md:text-2xl font-bold mb-2"></h3>
+        <p id="reg-status-message" class="text-xs text-white/80 leading-relaxed"></p>
+      </div>
+
+      <div class="pt-2">
+        <button id="reg-status-btn-action" onclick="window.Connection.goToMyActivities()" class="w-full btn-white py-3 text-xs md:text-sm font-bold uppercase tracking-wider font-dearpix">
+          Đến xem Hoạt động của tôi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP BẬT THÔNG BÁO (Pop up noti.pdf) -->
+  <div id="popup-noti-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-sm w-full p-8 text-center space-y-6">
+      <div class="w-24 h-24 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center mx-auto shadow-2xl">
+        <i data-lucide="bell" class="w-12 h-12 text-yellow-300"></i>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-2xl text-white font-dearpix">Bật thông báo</h3>
+        <p class="text-xs text-white/70 mt-2 leading-relaxed">
+          Đừng bỏ lỡ những quest thú vị, tin nhắn và thông tin từ bạn bè nhé!
+        </p>
+      </div>
+
+      <div class="space-y-3 pt-2">
+        <button onclick="window.App.requestNotificationPermission()" class="w-full btn-white py-3 text-sm font-bold tracking-wide uppercase font-dearpix">
+          Thông báo cho tôi
+        </button>
+        <button onclick="window.App.closeNotiPopup()" class="w-full btn-outline py-2.5 text-xs text-white/70 hover:text-white">
+          Bỏ qua
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP ĐĂNG NHẬP (Pop up login.pdf) -->
+  <div id="popup-login-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-sm w-full p-8 text-center space-y-6">
+      <div class="w-24 h-24 rounded-full bg-white/10 border-2 border-cyan-400 flex items-center justify-center mx-auto shadow-2xl">
+        <i data-lucide="user" class="w-12 h-12 text-cyan-300"></i>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-2xl text-white font-dearpix">Tạo tài khoản</h3>
+        <p class="text-xs text-white/70 mt-2 leading-relaxed">
+          Bạn cần đăng nhập để thực hiện hành động này
+        </p>
+      </div>
+
+      <div class="space-y-3 pt-2">
+        <button onclick="window.App.closeLoginPopup(); window.App.navigate('login')" class="w-full btn-white py-3 text-sm font-bold tracking-wide uppercase font-dearpix">
+          Đăng nhập
+        </button>
+        <button onclick="window.App.closeLoginPopup()" class="w-full btn-outline py-2.5 text-xs text-white/70 hover:text-white">
+          Quay lại
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP NẠP TIỀN HOẶC CHIA SẺ NHẬN ĐIỂM THƯỞNG -->
+  <div id="popup-recharge-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-md w-full p-8 text-center space-y-6">
+      <div class="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center mx-auto shadow-2xl">
+        <i data-lucide="sparkles" class="w-10 h-10 text-yellow-300"></i>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-2xl text-white font-dearpix">Hết lượt miễn phí!</h3>
+        <p class="text-xs text-white/70 mt-2 leading-relaxed">
+          Bạn đã sử dụng hết lượt tạo/đăng quest miễn phí. Hãy chọn nạp thêm hoặc chia sẻ trang web để nhận điểm thưởng đổi lượt tạo!
+        </p>
+      </div>
+
+      <div class="space-y-3 text-xs font-semibold">
+        <button onclick="window.App.rechargeSimulated(20000, 10)" class="w-full p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-between transition-all">
+          <span>Nạp 20.000 VNĐ</span>
+          <span class="text-cyan-300 font-bold">+10 Lượt tạo quest</span>
+        </button>
+        <button onclick="window.App.rechargeSimulated(50000, 30)" class="w-full p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-between transition-all">
+          <span>Nạp 50.000 VNĐ</span>
+          <span class="text-yellow-300 font-bold">+30 Lượt tạo quest</span>
+        </button>
+        <button onclick="window.App.shareForBonusTurns()" class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-pink-500/30 to-purple-500/30 border border-pink-400 text-white flex items-center justify-between transition-all">
+          <span>🎁 Chia sẻ nhận ngay</span>
+          <span class="text-pink-300 font-bold">+2 Lượt miễn phí</span>
+        </button>
+      </div>
+
+      <button onclick="window.App.closeRechargePopup()" class="btn-outline px-6 py-2 text-xs">
+        Bỏ qua
+      </button>
+    </div>
+  </div>
+
+  <!-- QUEST DETAIL MODAL -->
+  <div id="quest-detail-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
+    <div class="glass-modal max-w-2xl w-full p-6 md:p-8 my-8 relative">
+      <button onclick="window.Connection.closeDetailModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white z-10">
+        ✕
+      </button>
+      <div id="quest-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- NEW QUEST POSTING MODAL -->
+  <div id="new-quest-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
+    <div class="glass-modal max-w-2xl w-full p-6 md:p-8 my-8 relative">
+      <button onclick="window.Connection.closeCreateModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white z-10">
+        ✕
+      </button>
+      
+      <h2 class="font-dearpix text-2xl font-bold text-white mb-2">Đăng Sidequest mới</h2>
+      <p class="text-xs text-white/60 mb-6">Mỗi tài khoản được đăng miễn phí 3 quests. Hãy mô tả chi tiết để thu hút người tham gia!</p>
+
+      <form onsubmit="window.Connection.submitNewQuest(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-white/70 mb-1 font-semibold">Tên Sidequest *</label>
+          <input id="new-quest-title" type="text" required placeholder="Nhập tên sidequest hấp dẫn..." class="w-full glass-input px-4 py-2.5 text-xs text-white" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-white/70 mb-1 font-semibold">Độ khó</label>
+            <select id="new-quest-diff" class="w-full glass-input px-3 py-2 text-xs bg-slate-900">
+              <option value="Dễ">Dễ</option>
+              <option value="Trung bình">Trung bình</option>
+              <option value="Khó">Khó</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-white/70 mb-1 font-semibold">Tag chủ đề</label>
+            <select id="new-quest-tag" class="w-full glass-input px-3 py-2 text-xs bg-slate-900">
+              <option value="Sáng tạo">Sáng tạo</option>
+              <option value="Học hỏi">Học hỏi</option>
+              <option value="Thể chất">Thể chất</option>
+              <option value="Kết nối">Kết nối</option>
+              <option value="Đồng hành">Đồng hành</option>
+              <option value="Thiện nguyện">Thiện nguyện</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-white/70 mb-1 font-semibold">Thời gian diễn ra *</label>
+            <input id="new-quest-datetime" type="datetime-local" required class="w-full glass-input px-3 py-2 text-xs text-white bg-slate-900 border border-white/20 rounded-xl [color-scheme:dark]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-white/70 mb-1 font-semibold">Địa điểm</label>
+            <select id="new-quest-location" class="w-full glass-input px-3 py-2 text-xs bg-slate-900"></select>
+          </div>
+          <div>
+            <label class="block text-white/70 mb-1 font-semibold">Số người tham gia tối đa</label>
+            <input id="new-quest-participants" type="number" min="1" max="100" value="10" class="w-full glass-input px-3 py-2 text-xs text-white" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+          <div>
+            <label class="block text-white/70 mb-1 font-semibold">Chi phí tham gia</label>
+            <select id="new-quest-fee-type" class="w-full glass-input px-3 py-2 text-xs bg-slate-900 mb-2">
+              <option value="Miễn phí">Miễn phí</option>
+              <option value="Trả phí">Trả phí</option>
+              <option value="Đổi điểm">Đổi điểm</option>
+            </select>
+            <input id="new-quest-fee-value" type="text" placeholder="Số tiền / Điểm (nếu có)" class="w-full glass-input px-3 py-1.5 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-white/70 mb-1 font-semibold">Điều kiện phê duyệt</label>
+            <div class="flex items-center space-x-2 pt-2">
+              <input id="new-quest-approval" type="checkbox" class="w-4 h-4 rounded text-cyan-500" />
+              <label for="new-quest-approval" class="text-xs text-white/80">Cần chủ quest phê duyệt người tham gia</label>
+            </div>
+            <p class="text-[10px] text-white/50 mt-1">Nếu không chọn, người đăng ký sẽ được tự động tham gia ngay.</p>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <label class="block text-white/70 mb-1 font-semibold">Phần thưởng cho người hoàn thành</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+            <select id="new-quest-reward-type" class="glass-input px-3 py-2 text-xs bg-slate-900">
+              <option value="Hiện kim">Quà tặng hiện kim</option>
+              <option value="Hiện vật">Quà tặng hiện vật</option>
+              <option value="Khác">Khác (Tự ghi chú)</option>
+            </select>
+            <input id="new-quest-reward-custom" type="text" placeholder="Chi tiết phần thưởng (VD: 100k, Áo thun,...)" class="glass-input px-3 py-2 text-xs text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-white/70 mb-1 font-semibold">Yêu cầu & Điều kiện tham gia</label>
+          <input id="new-quest-requirements" type="text" placeholder="VD: Mang theo đồ thể thao, có mặt đúng giờ..." class="w-full glass-input px-4 py-2 text-xs text-white" />
+        </div>
+
+        <div>
+          <label class="block text-white/70 mb-1 font-semibold">Mô tả chi tiết hoạt động *</label>
+          <textarea id="new-quest-desc" rows="3" required placeholder="Mô tả cụ thể lịch trình, mục đích và trải nghiệm..." class="w-full glass-input px-4 py-2.5 text-xs text-white rounded-2xl"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-white/10">
+          <button type="button" onclick="window.Connection.closeCreateModal()" class="btn-outline px-5 py-2 text-xs">
+            Hủy
+          </button>
+          <button type="submit" class="btn-white px-7 py-2.5 text-xs uppercase font-bold tracking-wider font-dearpix">
+            Đăng Sidequest
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PUBLIC USER PROFILE MODAL -->
+  <div id="user-profile-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
+    <div class="glass-modal max-w-xl w-full p-6 md:p-8 my-8 relative">
+      <button onclick="window.App.closeUserProfile()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white z-10">
+        ✕
+      </button>
+      <div id="user-profile-content"></div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE MODAL -->
+  <div id="profile-edit-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-md w-full p-6 md:p-8 relative">
+      <button onclick="window.Profile.closeEditModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+        ✕
+      </button>
+      <h3 class="font-dearpix text-xl font-bold text-white mb-4">Chỉnh sửa hồ sơ</h3>
+      <form onsubmit="window.Profile.saveProfile(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-white/70 mb-1 font-semibold">Tên người dùng (Username)</label>
+          <input id="edit-username" type="text" required class="w-full glass-input px-4 py-2 text-xs text-white" />
+        </div>
+        <div>
+          <label class="block text-white/70 mb-1 font-semibold">Tiểu sử (Bio)</label>
+          <textarea id="edit-bio" rows="3" class="w-full glass-input px-4 py-2 text-xs text-white rounded-2xl"></textarea>
+        </div>
+        <div class="p-3 rounded-xl bg-white/5 border border-white/10 text-white/50 text-[11px]">
+          Lưu ý: Các chỉ số tiến độ (Quest hoàn thành, Điểm thưởng, Xếp hạng) được cập nhật tự động theo hoạt động thực tế của bạn và không thể sửa thủ công.
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="window.Profile.closeEditModal()" class="btn-outline px-4 py-2 text-xs">Hủy</button>
+          <button type="submit" class="btn-white px-6 py-2 text-xs font-bold uppercase font-dearpix">Lưu thay đổi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SHARE REVIEW TO BẢNG TIN MODAL -->
+  <div id="share-review-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
+    <div class="glass-modal max-w-lg w-full p-6 md:p-8 relative my-8">
+      <button onclick="window.Profile.closeShareReviewModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+        ✕
+      </button>
+      <div class="text-center mb-4">
+        <span class="text-xs px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400 font-bold">Hoàn thành Quest</span>
+        <h3 class="font-dearpix text-xl font-bold text-white mt-2">Chia sẻ trải nghiệm</h3>
+        <p id="review-quest-name" class="text-xs text-cyan-300 font-semibold mt-1"></p>
+        <p class="text-[11px] text-white/60 mt-1">Đăng review để nhận ngay +25 Điểm thưởng MyQuest!</p>
+      </div>
+      <form onsubmit="window.Profile.submitReviewPost(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-white/70 mb-1 font-semibold">Cảm nhận và kỷ niệm của bạn</label>
+          <textarea id="review-content" rows="3" required placeholder="Chia sẻ những khoảnh khắc đáng nhớ khi hoàn thành sidequest này..." class="w-full glass-input px-4 py-2 text-xs text-white rounded-2xl"></textarea>
+        </div>
+
+        <!-- Attachment (Media: Photos & Videos) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-white/70 font-semibold">Tệp đính kèm (Ảnh & Video)</label>
+            <span id="review-media-count" class="text-[11px] text-cyan-300 font-normal">0 tệp đã chọn</span>
+          </div>
+          
+          <input type="file" id="review-file-input" accept="image/*,video/*" multiple class="hidden" onchange="window.Profile.handleFileSelect(event)" />
+          
+          <div class="flex items-center space-x-2 mb-2">
+            <button type="button" onclick="document.getElementById('review-file-input').click()" 
+              class="btn-outline px-4 py-2 text-xs flex items-center space-x-2 border-dashed border-cyan-400/60 hover:border-cyan-300 hover:text-cyan-300">
+              <i data-lucide="image-plus" class="w-4 h-4 text-cyan-400"></i>
+              <span>Thêm ảnh hoặc video</span>
+            </button>
+          </div>
+
+          <!-- Preview thumbnails container -->
+          <div id="review-media-previews" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 empty:hidden max-h-48 overflow-y-auto p-2 rounded-xl bg-white/5 border border-white/10"></div>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2 border-t border-white/10">
+          <button type="button" onclick="window.Profile.closeShareReviewModal()" class="btn-outline px-4 py-2 text-xs">Hủy</button>
+          <button type="button" onclick="window.Profile.submitReviewPost(event)" class="btn-white px-6 py-2 text-xs font-bold uppercase tracking-wider font-dearpix shadow-lg">Đăng lên Bảng tin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- POST DETAIL MODAL (Xem chi tiết bài viết từ Profile hoặc Bảng tin) -->
+  <div id="post-detail-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
+    <div class="glass-modal max-w-2xl w-full p-6 md:p-8 my-8 relative">
+      <button onclick="window.Profile.closePostDetail()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white z-10">
+        ✕
+      </button>
+
+      <div id="post-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- MANAGE APPLICANTS MODAL -->
+  <div id="manage-applicants-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-md w-full p-6 relative">
+      <button onclick="window.Profile.closeManageApplicants()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+        ✕
+      </button>
+      <h3 id="manage-quest-title" class="font-dearpix text-lg font-bold text-white mb-4">Duyệt người tham gia</h3>
+      <div id="applicants-list-content" class="space-y-2 max-h-80 overflow-y-auto pr-1"></div>
+    </div>
+  </div>
+
+  <!-- COMMENTS MODAL -->
+  <div id="comments-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-lg w-full p-6 relative flex flex-col max-h-[85vh]">
+      <button onclick="window.Feed.closeComments()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+        ✕
+      </button>
+      <h3 id="comments-header-info" class="font-bold text-sm text-white mb-4 pb-2 border-b border-white/10">Bình luận bài viết</h3>
+      <div id="comments-list" class="flex-1 overflow-y-auto space-y-2.5 pr-2 mb-4"></div>
+      <form onsubmit="window.Feed.submitComment(event)" class="flex items-center space-x-2 pt-2 border-t border-white/10">
+        <input id="comment-input" type="text" required placeholder="Viết bình luận..." class="flex-1 glass-input px-4 py-2 text-xs text-white" />
+        <button type="submit" class="btn-white px-5 py-2 text-xs font-bold uppercase font-dearpix">Gửi</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SHARE MULTI-CHANNEL MODAL -->
+  <div id="share-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-sm w-full p-6 text-center space-y-5">
+      <div class="flex items-center justify-between pb-2 border-b border-white/10">
+        <h3 class="font-bold text-base text-white">Chia sẻ bài viết</h3>
+        <button onclick="window.Feed.closeShareModal()" class="text-white/60 hover:text-white">✕</button>
+      </div>
+
+      <div class="grid grid-cols-4 gap-3 text-[11px] font-medium text-white/80">
+        <button onclick="window.Feed.shareToExternal('Facebook')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">f</div>
+          <span>Facebook</span>
+        </button>
+        <button onclick="window.Feed.shareToExternal('Instagram')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 flex items-center justify-center text-white">IG</div>
+          <span>Instagram</span>
+        </button>
+        <button onclick="window.Feed.shareToExternal('X')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-black border border-white/30 flex items-center justify-center text-white">𝕏</div>
+          <span>X</span>
+        </button>
+        <button onclick="window.Feed.shareToExternal('Threads')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center text-white">@</div>
+          <span>Threads</span>
+        </button>
+        <button onclick="window.Feed.shareToExternal('TikTok')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-black border border-cyan-400 flex items-center justify-center text-white">TT</div>
+          <span>TikTok</span>
+        </button>
+        <button onclick="window.Feed.shareToExternal('Zalo')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">Z</div>
+          <span>Zalo</span>
+        </button>
+        <button onclick="window.Feed.shareToExternal('Discord')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center text-white">DC</div>
+          <span>Discord</span>
+        </button>
+        <button onclick="window.Feed.shareToExternal('copy')" class="flex flex-col items-center space-y-1 hover:text-white">
+          <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center text-cyan-300">🔗</div>
+          <span>Copy Link</span>
+        </button>
+      </div>
+
+      <div class="pt-3 border-t border-white/10 text-left">
+        <label class="block text-xs font-semibold text-cyan-300 mb-2">Gửi qua tin nhắn MyQuest:</label>
+        <div class="space-y-1.5 max-h-36 overflow-y-auto">
+          <button onclick="window.Feed.shareToChat('chat-1')" class="w-full p-2 rounded-xl bg-white/5 hover:bg-white/15 flex items-center space-x-2 text-xs text-white">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=CyberRonin" class="w-6 h-6 rounded-full" />
+            <span>CyberRonin</span>
+          </button>
+          <button onclick="window.Feed.shareToChat('chat-2')" class="w-full p-2 rounded-xl bg-white/5 hover:bg-white/15 flex items-center space-x-2 text-xs text-white">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=PixelQueen" class="w-6 h-6 rounded-full" />
+            <span>PixelQueen</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALL & VIDEO CALL SIMULATION MODAL -->
+  <div id="call-simulation-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-lg flex items-center justify-center p-4 hidden">
+    <div class="glass-modal max-w-sm w-full p-8 text-center space-y-6">
+      <div class="relative w-28 h-28 mx-auto">
+        <div class="absolute inset-0 rounded-full border-4 border-cyan-400 animate-ping opacity-30"></div>
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=CyberRonin" class="w-full h-full rounded-full border-2 border-cyan-400 relative z-10" />
+      </div>
+
+      <div>
+        <h3 id="call-user-name" class="font-bold text-xl text-white">CyberRonin</h3>
+        <p id="call-title" class="text-xs text-cyan-300 mt-1">Cuộc gọi thoại...</p>
+        <p id="call-timer" class="font-mono text-sm text-white/70 mt-2">00:00</p>
+      </div>
+
+      <div class="flex items-center justify-center space-x-4 pt-4">
+        <button onclick="window.App.showToast('Đã tắt/bật mic', 'info')" class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white">
+          <i data-lucide="mic-off" class="w-5 h-5"></i>
+        </button>
+        <button onclick="window.Chat.endCall()" class="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-700 flex items-center justify-center text-white shadow-xl">
+          <i data-lucide="phone-off" class="w-6 h-6"></i>
+        </button>
+        <button onclick="window.App.showToast('Đã chuyển đổi camera', 'info')" class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white">
+          <i data-lucide="video" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/kvn-helper.js"></script>
+  <script src="js/background.js"></script>
+  <script src="js/generator.js"></script>
+  <script src="js/connection.js"></script>
+  <script src="js/feed.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

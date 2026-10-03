@@ -1,0 +1,49 @@
+﻿/* Font definition for DeArPix (Vietnamese Pixel Font by ygygfu) */
+@font-face {
+  font-family: 'DearPix';
+  src: url('../assets/fonts/dearpix-2-01.ttf') format('truetype'),
+       url('../assets/fonts/dearpix-2-01.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Also alias KVN-97 to DearPix so existing classes seamlessly use DearPix */
+@font-face {
+  font-family: 'KVN-97';
+  src: url('../assets/fonts/dearpix-2-01.ttf') format('truetype'),
+       url('../assets/fonts/dearpix-2-01.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --dearpix-letter-spacing: 0.05em;
+}
+
+.font-dearpix,
+.font-kvn {
+  font-family: 'DearPix', 'KVN-97', monospace, sans-serif !important;
+  letter-spacing: var(--dearpix-letter-spacing);
+  text-transform: uppercase;
+}
+
+/* Accented Vietnamese uppercase styling in DearPix */
+.kvn-cap-accent {
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Soft glow for titles as requested */
+.title-glow {
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.7), 0 0 24px rgba(11, 0, 80, 0.85);
+}
+
+.title-glow-neon {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.65), 0 0 20px rgba(11, 0, 80, 0.9);
+}
+
+.logo-glow {
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.75)) drop-shadow(0 0 20px rgba(0, 240, 255, 0.35));
+}
